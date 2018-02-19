@@ -1,0 +1,24 @@
+{
+  "name": "techdegree-project7",
+  "version": "1.0.0",
+  "description": "Techdegree prohject 7 for Fullstack JS",
+  "main": "public/js/app.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MissMeg/techdegree-project7.git"
+  },
+  "author": "Megan Roberts",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MissMeg/techdegree-project7/issues"
+  },
+  "homepage": "https://github.com/MissMeg/techdegree-project7#readme",
+  "devDependencies": {
+    "express": "^4.16.2",
+    "passport-twitter": "^1.0.4",
+    "pug": "^2.0.0-rc.4"
+  }
+}
