@@ -1,39 +1,31 @@
 const keys = require("./config.js");
 const express = require('express');
 const app = express();
-const passport = require("passport-twitter");
-const token = keys.accessToken;
-const tokenSecret = keys.accessTokenSecret;
+const twit = require("twit");
 
+app.set('views', 'views');
 app.set('view engine', 'pug');
-app.use('/static', express.static('public'));
+app.use('/static', express.static(__dirname + '/public'));
 
-passport.use(new TwitterStrategy({
-    consumerKey: keys.consumerKey,
-    consumerSecret: keys.consumerSecret,
-    callbackURL: "https://techdegree-project7-megmrob.c9users.io/auth/twitter/callback"
-  },
-  function(token, tokenSecret, profile, cb) {
-  }
-));
-
-app.get('/auth/twitter',
-  passport.authenticate('twitter'));
-
-app.get('/auth/twitter/callback', 
-  passport.authenticate('twitter', { failureRedirect: '/login' }),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.redirect('/');
+const T = new twit({
+  consumer_key: keys.consumerKey,
+  consumer_secret: keys.consumerSecret,
+  access_token: keys.accessToken,
+  access_token_secret: keys.accessTokenSecret
 });
 
-app.get('/auth/twitter/statuses/user_timeline', 
-  passport.authenticate('twitter', { failureRedirect: '/login' }),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.render('index', {data: res});
+T.get('friends/list', { count: 5 }, function (err, data, response) {
+  // console.log(data.users[0]);
 });
- 
+
+T.get('statuses/user_timeline', { screen_name: 'miss_pylons', count: 5 }, function (err, data, response) {
+  // console.log(data[0]);
+});
+
+T.get('direct_messages/events/list', { count: 5 }, function (err, data, response) {
+  console.log(data.events[0].message_create.message_data.text);
+  
+});
 
 app.get('/', (req, res) => {
     res.render('index');
