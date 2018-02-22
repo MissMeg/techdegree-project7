@@ -1,11 +1,10 @@
-const keys = require("./config.js");
+const keys = require("./public/js/config.js");
 const express = require('express');
 const app = express();
 const twit = require("twit");
 
-app.set('views', 'views');
 app.set('view engine', 'pug');
-app.use('/static', express.static(__dirname + '/public'));
+app.use('/static', express.static('public'));
 
 const T = new twit({
   consumer_key: keys.consumerKey,
@@ -18,7 +17,7 @@ T.get('friends/list', { count: 5 }, function (err, data, response) {
   // console.log(data.users[0]);
 });
 
-T.get('statuses/user_timeline', { screen_name: 'miss_pylons', count: 5 }, function (err, data, response) {
+T.get('statuses/home_timeline', { count: 5 }, function (err, data, response) {
   // console.log(data[0]);
 });
 
