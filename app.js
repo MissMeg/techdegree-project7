@@ -23,6 +23,11 @@ const friendsData = [];
 const statusData = [];
 const dMessages = [];
 
+///////////////////////////////////////TWITTER USERNAME/////////////////////////
+//since some of the calls require a screen_name, feel free to change this variable
+//when grading to match your twitter account if you don't want to see my tweets
+const user = 'miss_pylons';
+
 //set Pug as the view engine
 app.set('view engine', 'pug');
 //set the css to be accessible via static
@@ -32,12 +37,12 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 //grab info about myself, set them in an object and push to the userData array
 //send error out if there is one
-Twit.get('users/show', { screen_name: 'miss_pylons' }, function (err, data, response, next) {
+//Using this to get avatar and banner url as well as the rest of the details
+Twit.get('users/show', { screen_name: user }, function (err, data, response, next) {
   //grab and set the info needed from the data
   let user = {
     displayName: data.name,
     username: `@${data.screen_name}`,
-    followers: data.followers_count,
     friends: data.friends_count,
     avatar: data.profile_image_url_https,
     banner: data.profile_banner_url
@@ -75,7 +80,8 @@ Twit.get('friends/list', { count: 5 }, function (err, data, response, next) {
 
 //grab last 5 statuses from twitter, set their info, and push to the array
 //send error out if there is one
-Twit.get('statuses/user_timeline', { screen_name: 'miss_pylons', count: 5 }, function (err, data, response, next) {
+//Using this grab in order to only get my tweets and not the "home_timeline" which gets my tweets and my followers tweets
+Twit.get('statuses/user_timeline', { screen_name: user, count: 5 }, function (err, data, response, next) {
   //iterate through the data to grab and set the info needed
   for ( let i = 0; i < data.length; i++) {
     let date = new Date(Date.parse(data[i].created_at));
