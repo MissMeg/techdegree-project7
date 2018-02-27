@@ -1,5 +1,13 @@
 .circle--header {
-    background-image: url(https://pbs.twimg.com/profile_banners/782767058584866816/1498325137/1500x500);
     background-size: 950px 200px;
     background-position: 25% 10%;
+}
+#errorPageHeader {
+    text-align: center;
+    margin: 10rem auto 5rem;
+}
+
+#error {
+    text-align: justify;
+    margin: 0rem auto 5rem;
 }
