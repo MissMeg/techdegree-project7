@@ -50,6 +50,7 @@ html(lang="en")
 								c67.9,0,105.1-56.2,105.1-104.9c0-1.6,0-3.2-0.1-4.8C168.8,31.2,175,24.7,180,17.3z")
 							h1= user[0].username
 		.app--tweet
+			//post to /tweet
 			form(method="POST" action="/tweet")
 				.circle--fluid
 					.circle--fluid--cell.circle--fluid--primary.align-bottom.app--tweet--post
@@ -74,6 +75,7 @@ html(lang="en")
 			.grid-33
 				.app--section
 					ul.app--tweet--list
+						//iterate through the statuses and display each
 						each tweet in status
 							li
 								strong.app--tweet--timestamp= tweet.date
@@ -136,6 +138,7 @@ html(lang="en")
 			.grid-33
 				.app--section
 					ul.app--user--list
+						//iterate through the friends and display each
 						each friend in friends
 							li
 								.circle--fluid
@@ -152,6 +155,7 @@ html(lang="en")
 					ul.app--message--list
 						li
 							ul.app--message--conversation
+								//iterate through the DMs and display each
 								each message in dms
 									li.app--message
 										p.app--message--text= message.message
