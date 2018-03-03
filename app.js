@@ -160,6 +160,13 @@ app.post('/tweet', (req, res, next) => {
     }
 });
 
+//404 error
+app.use((req, res, next) => {
+    let err = new Error('File Not Found');
+    err.status = 404;
+    next(err);
+});
+
 //if there is an error, display the error page
 app.use((err, req, res, next) => {
     res.status(err.status || 500);
