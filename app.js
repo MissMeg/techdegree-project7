@@ -1,6 +1,6 @@
 ///////////////////////////Variables/////////////////////////////////////////
 //grab the config variables
-const keys = require("./public/js/config.js");
+const keys = require("./config.js");
 //set Express npm
 const express = require('express');
 const app = express();
