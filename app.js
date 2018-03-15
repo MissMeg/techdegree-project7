@@ -10,12 +10,7 @@ const twit = require("twit");
 const bodyParser = require("body-parser");
 
 //start new twit connection
-const Twit = new twit({
-  consumer_key: keys.consumerKey,
-  consumer_secret: keys.consumerSecret,
-  access_token: keys.accessToken,
-  access_token_secret: keys.accessTokenSecret
-});
+const Twit = new twit(keys);
 
 //store data received
 const userData = [];
