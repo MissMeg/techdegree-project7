@@ -33,97 +33,121 @@ app.use(bodyParser.urlencoded({extended: false}));
 //grab info about myself, set them in an object and push to the userData array
 //send error out if there is one
 //Using this to get avatar and banner url as well as the rest of the details
-Twit.get('users/show', { screen_name: user }, function (err, data, response, next) {
-  //grab and set the info needed from the data
-  let user = {
-    displayName: data.name,
-    username: `@${data.screen_name}`,
-    friends: data.friends_count,
-    avatar: data.profile_image_url_https,
-    banner: data.profile_banner_url
-  }
-  //push user info to the array
-  userData.push(user);
-  //send error if there is one
-  if (err) {
-    console.error(err);
-    let err = new Error('Error connecting to Twitter. Failed to get user information.');
-    return next(err);
-  }
+app.use((req, res, next) => {
+  Twit.get('users/show', { screen_name: user }, function (err, data, response) {
+    if(!err) {
+      //grab and set the info needed from the data
+      let user = {
+        displayName: data.name,
+        username: `@${data.screen_name}`,
+        friends: data.friends_count,
+        avatar: data.profile_image_url_https,
+        banner: data.profile_banner_url
+      }
+      //push user info to the array
+      userData.push(user);
+      next();
+    }
+    //send error if there is one
+    else {
+      console.error(err);
+      let err = new Error('Error connecting to Twitter. Failed to get user information.');
+      next(err);
+    }
+  });
 });
 
 //grab last 5 friends from twitter, set their info, and push to the array
 //send error out if there is one
-Twit.get('friends/list', { count: 5 }, function (err, data, response, next) {
-  //iterate through the data to grab and set the info needed
-  for (let i = 0; i < data.users.length; i++) {
-    let friends = {
-      username: `@${data.users[i].screen_name}`,
-      displayName: data.users[i].name,
-      image: data.users[i].profile_image_url_https
+app.use((req, res, next) => {
+  Twit.get('friends/list', { count: 5 }, function (err, data, response) {
+    if (!err) {
+      //iterate through the data to grab and set the info needed
+      for (let i = 0; i < data.users.length; i++) {
+        let friends = {
+          username: `@${data.users[i].screen_name}`,
+          displayName: data.users[i].name,
+          image: data.users[i].profile_image_url_https
+        }
+        //push each friend info to the array
+        friendsData.push(friends);
+      }
+      next();
     }
-    //push each friend info to the array
-    friendsData.push(friends);
-  }
-  //send error if there is one
-  if (err) {
-    console.error(err);
-    let err = new Error('Error connecting to Twitter. Failed to get friends list.');
-    return next(err);
-  }
+    //send error if there is one
+    else {
+      console.error(err);
+      let err = new Error('Error connecting to Twitter. Failed to get friends list.');
+      next(err);
+    }
+  });
 });
+
 
 //grab last 5 statuses from twitter, set their info, and push to the array
 //send error out if there is one
 //Using this grab in order to only get my tweets and not the "home_timeline" which gets my tweets and my followers tweets
-Twit.get('statuses/user_timeline', { screen_name: user, count: 5 }, function (err, data, response, next) {
-  //iterate through the data to grab and set the info needed
-  for ( let i = 0; i < data.length; i++) {
-    let date = new Date(Date.parse(data[i].created_at));
-    let status = {
-      message: data[i].text,
-      retweets: data[i].retweet_count,
-      favorites: data[i].favorite_count,
-      date: `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
+app.use((req, res, next) => {
+  Twit.get('statuses/user_timeline', { screen_name: user, count: 5 }, function (err, data, response) {
+    if(!err) {
+      //iterate through the data to grab and set the info needed
+      for ( let i = 0; i < data.length; i++) {
+        let date = new Date(Date.parse(data[i].created_at));
+        let status = {
+          message: data[i].text,
+          retweets: data[i].retweet_count,
+          favorites: data[i].favorite_count,
+          date: `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
+        }
+        //push each status info to the array
+        statusData.push(status);
+      }
+      next();
     }
-    //push each status info to the array
-    statusData.push(status);
-  }
-  //send error if there is one
-  if (err) {
-    console.error(err);
-    let err = new Error('Error connecting to Twitter. Failed to get statuses.');
-    return next(err);
-  }
+    //send error if there is one
+    else {
+      console.error(err);
+      let err = new Error('Error connecting to Twitter. Failed to get statuses.');
+      next(err);
+    }
+  });
 });
 
 //grab last 5 DMs from twitter, set their info, and push to the array
 //send error out if there is one
-Twit.get('direct_messages/events/list', { count: 5 }, function (err, data, response, next) {
-  //iterate through the data to grab and set the info needed
-  for ( let i = 0; i < data.events.length; i ++) {
-    let date = new Date(parseInt(data.events[i].created_timestamp));
-    let message = {
-      message: data.events[i].message_create.message_data.text,
-      time: date.toLocaleTimeString('en-US'),
-      date: date.toLocaleDateString('en-US')
+app.use((req, res, next) => {
+  Twit.get('direct_messages/events/list', { count: 5 }, function (err, data, response) {
+    if (!err) {
+      //iterate through the data to grab and set the info needed
+      for ( let i = 0; i < data.events.length; i ++) {
+        let date = new Date(parseInt(data.events[i].created_timestamp));
+        let message = {
+          message: data.events[i].message_create.message_data.text,
+          time: date.toLocaleTimeString('en-US'),
+          date: date.toLocaleDateString('en-US')
+        }
+        //push each message info into the array
+        dMessages.push(message);
+      }
+      next();
     }
-    //push each message info into the array
-    dMessages.push(message);
-  }
-  //send error if there is one
-  if (err) {
-    console.error(err);
-    let err = new Error('Error connecting to Twitter. Failed to get DMs.');
-    return next(err);
-  }
+    //send error if there is one
+    else {
+      console.error(err);
+      let err = new Error('Error connecting to Twitter. Failed to get DMs.');
+      next(err);
+    }
+  });
 });
 
 //render the 'homepage' index.pug with the info grabbed from twitter
 app.get('/', (req, res) => {
-  if (dMessages[0] != undefined) {
-    res.render('index', {user: userData, friends: friendsData, status: statusData, dms: dMessages});
-  }
+    res.render('index', {
+      user: userData, 
+      friends: friendsData, 
+      status: statusData, 
+      dms: dMessages
+    });
 });
 
 //post the new tweet and add it to the page
