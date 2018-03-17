@@ -19,9 +19,8 @@ const statusData = [];
 const dMessages = [];
 
 ///////////////////////////////////////TWITTER USERNAME/////////////////////////
-//since some of the calls require a screen_name, feel free to change this variable
-//when grading to match your twitter account if you don't want to see my tweets
-const user = 'miss_pylons';
+//since some of the calls require a screen_name - I used the Owner from the config file to get the correct routes
+let user = keys.owner;
 
 //set Pug as the view engine
 app.set('view engine', 'pug');
