@@ -20,7 +20,11 @@ const dMessages = [];
 
 ///////////////////////////////////////TWITTER USERNAME/////////////////////////
 //since some of the calls require a screen_name - I used the Owner from the config file to get the correct routes
-let user = keys.owner;
+//Owner is a part of the information the Twitter API gives along with the token and other necessary items.
+//let user = keys.owner;
+//Some people I guess are not adding all of this info to their config file which will cause the app to not gather the 
+//data, so I switched it to the first middleware call to set the user instead.
+let user;
 
 //set Pug as the view engine
 app.set('view engine', 'pug');
@@ -28,6 +32,23 @@ app.set('view engine', 'pug');
 app.use('/static', express.static('public'));
 //use the bodyParser to grab form inputs on submit
 app.use(bodyParser.urlencoded({extended: false}));
+
+//grab username for calls
+app.use((req, res, next) => {
+  Twit.get('account/verify_credentials', function (err, data, response) {
+    if(!err) {
+      //grab and set the info needed from the data
+      user = data.screen_name;
+      next();
+    }
+    //send error if there is one
+    else {
+      console.error(err);
+      let err = new Error('Error connecting to Twitter. Failed to get screen name.');
+      next(err);
+    }
+  });
+});
 
 //grab info about myself, set them in an object and push to the userData array
 //send error out if there is one
