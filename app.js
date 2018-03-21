@@ -5,12 +5,13 @@ const keys = require("./config.js");
 const express = require('express');
 const app = express();
 //set twitter npm
-const twit = require("twit");
+const twit = require("twit-promise");
 //set bodyParser npm (express no longer has this built in)
 const bodyParser = require("body-parser");
 
 //start new twit connection
 const Twit = new twit(keys);
+
 
 //store data received
 const userData = [];
@@ -18,13 +19,6 @@ const friendsData = [];
 const statusData = [];
 const dMessages = [];
 
-///////////////////////////////////////TWITTER USERNAME/////////////////////////
-//since some of the calls require a screen_name - I used the Owner from the config file to get the correct routes
-//Owner is a part of the information the Twitter API gives along with the token and other necessary items.
-//let user = keys.owner;
-//Some people I guess are not adding all of this info to their config file which will cause the app to not gather the 
-//data, so I switched it to the first middleware call to set the user instead.
-let user;
 
 //set Pug as the view engine
 app.set('view engine', 'pug');
@@ -33,131 +27,85 @@ app.use('/static', express.static('public'));
 //use the bodyParser to grab form inputs on submit
 app.use(bodyParser.urlencoded({extended: false}));
 
-//grab username for calls
-app.use((req, res, next) => {
-  Twit.get('account/verify_credentials', function (err, data, response) {
-    if(!err) {
-      //grab and set the info needed from the data
-      user = data.screen_name;
-      next();
-    }
-    //send error if there is one
-    else {
-      console.error(err);
-      let err = new Error('Error connecting to Twitter. Failed to get screen name.');
-      next(err);
-    }
-  });
-});
-
 //grab info about myself, set them in an object and push to the userData array
 //send error out if there is one
 //Using this to get avatar and banner url as well as the rest of the details
-app.use((req, res, next) => {
-  Twit.get('users/show', { screen_name: user }, function (err, data, response) {
-    if(!err) {
-      //grab and set the info needed from the data
-      let user = {
-        displayName: data.name,
-        username: `@${data.screen_name}`,
-        friends: data.friends_count,
-        avatar: data.profile_image_url_https,
-        banner: data.profile_banner_url
-      }
-      //push user info to the array
-      userData.push(user);
-      next();
-    }
-    //send error if there is one
-    else {
-      console.error(err);
-      let err = new Error('Error connecting to Twitter. Failed to get user information.');
-      next(err);
-    }
-  });
+Twit.get('account/verify_credentials').then( function (data) {
+  let user = {
+    displayName: data.data.name,
+    username: `@${data.data.screen_name}`,
+    friends: data.data.friends_count,
+    avatar: data.data.profile_image_url_https,
+    banner: data.data.profile_banner_url
+  }
+  //push user info to the array
+  userData.push(user);
+  //send error if there is one
+}).catch( error => {
+  let err = new Error('Error connecting to Twitter. Failed to get screen name.');
+  console.error(err);
 });
 
 //grab last 5 friends from twitter, set their info, and push to the array
 //send error out if there is one
-app.use((req, res, next) => {
-  Twit.get('friends/list', { count: 5 }, function (err, data, response) {
-    if (!err) {
-      //iterate through the data to grab and set the info needed
-      for (let i = 0; i < data.users.length; i++) {
-        let friends = {
-          username: `@${data.users[i].screen_name}`,
-          displayName: data.users[i].name,
-          image: data.users[i].profile_image_url_https
-        }
-        //push each friend info to the array
-        friendsData.push(friends);
-      }
-      next();
+Twit.get('friends/list', { count: 5 }).then( function (data) {
+  //iterate through the data to grab and set the info needed
+  for (let i = 0; i < data.data.users.length; i++) {
+    let friends = {
+      username: `@${data.data.users[i].screen_name}`,
+      displayName: data.data.users[i].name,
+      image: data.data.users[i].profile_image_url_https
     }
-    //send error if there is one
-    else {
-      console.error(err);
-      let err = new Error('Error connecting to Twitter. Failed to get friends list.');
-      next(err);
-    }
-  });
+    //push each friend info to the array
+    friendsData.push(friends);
+  }
+}).catch( error => {
+  //send error if there is one
+  let err = new Error('Error connecting to Twitter. Failed to get friends list.');
+  console.error(err);
 });
 
 
 //grab last 5 statuses from twitter, set their info, and push to the array
 //send error out if there is one
 //Using this grab in order to only get my tweets and not the "home_timeline" which gets my tweets and my followers tweets
-app.use((req, res, next) => {
-  Twit.get('statuses/user_timeline', { screen_name: user, count: 5 }, function (err, data, response) {
-    if(!err) {
-      //iterate through the data to grab and set the info needed
-      for ( let i = 0; i < data.length; i++) {
-        let date = new Date(Date.parse(data[i].created_at));
-        let status = {
-          message: data[i].text,
-          retweets: data[i].retweet_count,
-          favorites: data[i].favorite_count,
-          date: `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
-        }
-        //push each status info to the array
-        statusData.push(status);
-      }
-      next();
+Twit.get('statuses/user_timeline', { screen_name: userData.displayName, count: 5 }).then( function (data) {
+  //iterate through the data to grab and set the info needed
+  for ( let i = 0; i < data.data.length; i++) {
+    let date = new Date(Date.parse(data.data[i].created_at));
+    let status = {
+      message: data.data[i].text,
+      retweets: data.data[i].retweet_count,
+      favorites: data.data[i].favorite_count,
+      date: `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
     }
-    //send error if there is one
-    else {
-      console.error(err);
-      let err = new Error('Error connecting to Twitter. Failed to get statuses.');
-      next(err);
-    }
-  });
+    //push each status info to the array
+    statusData.push(status);
+  }
+}).catch( error => {
+  //send error if there is one
+  let err = new Error('Error connecting to Twitter. Failed to get statuses.');
+  console.error(err);
 });
 
 //grab last 5 DMs from twitter, set their info, and push to the array
 //send error out if there is one
-app.use((req, res, next) => {
-  Twit.get('direct_messages/events/list', { count: 5 }, function (err, data, response) {
-    if (!err) {
-      //iterate through the data to grab and set the info needed
-      for ( let i = 0; i < data.events.length; i ++) {
-        let date = new Date(parseInt(data.events[i].created_timestamp));
-        let message = {
-          message: data.events[i].message_create.message_data.text,
-          time: date.toLocaleTimeString('en-US'),
-          date: date.toLocaleDateString('en-US')
-        }
-        //push each message info into the array
-        dMessages.push(message);
-      }
-      next();
+Twit.get('direct_messages/events/list', { count: 5 }).then( function (data) {
+  //iterate through the data to grab and set the info needed
+  for ( let i = 0; i < data.data.events.length; i ++) {
+    let date = new Date(parseInt(data.data.events[i].created_timestamp));
+    let message = {
+      message: data.data.events[i].message_create.message_data.text,
+      time: date.toLocaleTimeString('en-US'),
+      date: date.toLocaleDateString('en-US')
     }
-    //send error if there is one
-    else {
-      console.error(err);
-      let err = new Error('Error connecting to Twitter. Failed to get DMs.');
-      next(err);
-    }
-  });
+    //push each message info into the array
+    dMessages.push(message);
+  }
+}).catch( error => {
+  //send error if there is one
+  let err = new Error('Error connecting to Twitter. Failed to get DMs.');
+  console.error(err);
 });
 
 //render the 'homepage' index.pug with the info grabbed from twitter
